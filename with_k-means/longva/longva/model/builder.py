@@ -14,6 +14,7 @@
 
 
 import os
+import json
 import shutil
 import warnings
 
@@ -23,6 +24,29 @@ from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer, BitsAn
 from longva.constants import DEFAULT_IM_END_TOKEN, DEFAULT_IM_START_TOKEN, DEFAULT_IMAGE_PATCH_TOKEN
 from longva.model import *
 from longva.utils import rank0_print
+
+
+def _resolve_torch_dtype(model_path, explicit_dtype=None):
+    if explicit_dtype is not None:
+        return explicit_dtype
+
+    env_dtype = os.environ.get("UHR_BAT_TORCH_DTYPE")
+    dtype_name = env_dtype
+    if dtype_name is None:
+        config_path = os.path.join(str(model_path), "config.json")
+        if os.path.isfile(config_path):
+            try:
+                with open(config_path, "r", encoding="utf-8") as f:
+                    dtype_name = json.load(f).get("torch_dtype")
+            except Exception:
+                dtype_name = None
+
+    dtype_name = str(dtype_name or "").lower()
+    if dtype_name in {"bfloat16", "bf16", "torch.bfloat16"}:
+        return torch.bfloat16
+    if dtype_name in {"float32", "fp32", "torch.float32"}:
+        return torch.float32
+    return torch.float16
 
 
 def load_pretrained_model(
@@ -59,6 +83,8 @@ def load_pretrained_model(
 
     kwargs["device_map"] = device_map
 
+    requested_torch_dtype = kwargs.pop("torch_dtype", None)
+
     if load_8bit:
         kwargs["load_in_8bit"] = True
     elif load_4bit:
@@ -70,7 +96,7 @@ def load_pretrained_model(
             bnb_4bit_quant_type="nf4",
         )
     else:
-        kwargs["torch_dtype"] = torch.float16
+        kwargs["torch_dtype"] = _resolve_torch_dtype(model_path, requested_torch_dtype)
 
     if customized_config is not None:
         kwargs["config"] = customized_config

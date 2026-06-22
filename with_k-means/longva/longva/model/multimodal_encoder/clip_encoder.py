@@ -57,7 +57,15 @@ class CLIPVisionTower(nn.Module):
                 attn_implementation="flash_attention_2",
                 torch_dtype=vision_dtype,
             )
-        except ValueError:
+        except (ValueError, ImportError):
+            self.vision_tower = CLIPVisionModel.from_pretrained(
+                self.vision_tower_name,
+                device_map=device_map,
+                attn_implementation="sdpa",
+                torch_dtype=vision_dtype,
+            )
+        except TypeError:
+            # Older transformers versions may not accept attn_implementation.
             self.vision_tower = CLIPVisionModel.from_pretrained(
                 self.vision_tower_name,
                 device_map=device_map,

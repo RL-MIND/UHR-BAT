@@ -550,6 +550,8 @@ class LlavaMetaForCausalLM(ABC):
                         pass
             pixels = pixels.to(device=vision_tower.device, dtype=vision_tower.dtype)
             feats = vision_tower(pixels)
+            projector_dtype = next(mm_projector.parameters()).dtype
+            feats = feats.to(dtype=projector_dtype)
             feats = mm_projector(feats)
             feats = vision_resampler(feats, images=pixels)
             # add residuals

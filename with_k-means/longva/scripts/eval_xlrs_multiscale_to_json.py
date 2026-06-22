@@ -96,10 +96,38 @@ def _strip_leading_image_tokens(text: Optional[str]) -> str:
     return remainder
 
 
-def _load_completed_ids(out_path: Path) -> set:
-    ids = set()
+def _stable_json_key(value: Any) -> str:
+    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+
+
+def _result_content_key(images: Any, question: Any, ground_truth: Any) -> Optional[str]:
+    if images is None or question is None:
+        return None
+    rel_list = [images] if isinstance(images, str) else list(images or [])
+    if not rel_list:
+        return None
+    return "content:" + _stable_json_key([rel_list, str(question), ground_truth])
+
+
+def _sample_resume_keys(sample: Dict, index: int) -> List[str]:
+    keys = [f"idx:{index}"]
+    try:
+        rel_list, q_text, gt, _ = extract_question_and_gt(sample)
+        content_key = _result_content_key(rel_list, q_text, gt)
+        if content_key:
+            keys.append(content_key)
+    except Exception:
+        pass
+    sid = sample.get("id")
+    if sid is not None:
+        keys.append("id:" + _stable_json_key(sid))
+    return keys
+
+
+def _load_completed_keys(out_path: Path) -> set:
+    keys = set()
     if not out_path.exists():
-        return ids
+        return keys
     try:
         with out_path.open("r", encoding="utf-8") as f:
             for line in f:
@@ -110,12 +138,23 @@ def _load_completed_ids(out_path: Path) -> set:
                     obj = json.loads(line)
                 except Exception:
                     continue
-                sid = obj.get("id")
-                if sid is not None:
-                    ids.add(sid)
+                sample_index = obj.get("sample_index")
+                if isinstance(sample_index, int):
+                    keys.add(f"idx:{sample_index}")
+                content_key = _result_content_key(
+                    obj.get("images") or obj.get("image"),
+                    obj.get("question"),
+                    obj.get("ground_truth"),
+                )
+                if content_key:
+                    keys.add(content_key)
+                elif sample_index is None:
+                    sid = obj.get("id")
+                    if sid is not None:
+                        keys.add("id:" + _stable_json_key(sid))
     except Exception:
         pass
-    return ids
+    return keys
 
 
 def _append_line(lock: Any, out_path: Path, line: str) -> None:
@@ -183,13 +222,13 @@ def _extract_single_choice_letter(text: Optional[str]) -> Optional[str]:
         return None
     text = _clean_generated_text(text)
     for line in (l.strip() for l in text.splitlines() if l.strip()):
-        m = re.match(r"^[^A-Da-d]*([ABCD])(?:\\b|[^A-Za-z])", line)
+        m = re.match(r"^[^A-Fa-f]*([ABCDEF])(?:\\b|[^A-Za-z])", line)
         if m:
             return m.group(1).upper()
         break
     seen = []
     for ch in text.upper():
-        if ch in {"A", "B", "C", "D"} and ch not in seen:
+        if ch in {"A", "B", "C", "D", "E", "F"} and ch not in seen:
             seen.append(ch)
     if len(seen) == 1:
         return seen[0]
@@ -198,7 +237,7 @@ def _extract_single_choice_letter(text: Optional[str]) -> Optional[str]:
 
 def _extract_choice_set(text: Optional[str]) -> List[str]:
     """
-    Extract sorted, de-duplicated choices (A-D) from text.
+    Extract sorted, de-duplicated choices (A-F) from text.
     Used to handle multi-select where all options must be correct.
     """
     if not isinstance(text, str):
@@ -206,7 +245,7 @@ def _extract_choice_set(text: Optional[str]) -> List[str]:
     text = _clean_generated_text(text)
     letters: List[str] = []
     for ch in text.upper():
-        if ch in {"A", "B", "C", "D"} and ch not in letters:
+        if ch in {"A", "B", "C", "D", "E", "F"} and ch not in letters:
             letters.append(ch)
     return sorted(letters)
 
@@ -783,6 +822,7 @@ def run_worker(
                 _append_line(lock, metrics_path, json.dumps(metrics_obj, ensure_ascii=False) + "\n")
 
             result = {
+                "sample_index": idx,
                 "id": sample.get("id"),
                 "images": rel_list,
                 "category": sample.get("category"),
@@ -803,6 +843,7 @@ def run_worker(
             _append_line(lock, out_path, line)
         except Exception as exc:
             err_obj = {
+                "sample_index": idx,
                 "id": sample.get("id"),
                 "images": sample.get("image") or sample.get("images"),
                 "error": str(exc),
@@ -834,11 +875,10 @@ def main() -> None:
     args.metrics_path = metrics_path
 
     resume_enabled = not args.no_resume
-    completed_ids = _load_completed_ids(out_path) if resume_enabled else set()
+    completed_keys = _load_completed_keys(out_path) if resume_enabled else set()
     indices_all: List[int] = []
     for i, sample in enumerate(data):
-        sid = sample.get("id", i)
-        if resume_enabled and sid in completed_ids:
+        if resume_enabled and any(key in completed_keys for key in _sample_resume_keys(sample, i)):
             continue
         indices_all.append(i)
     if args.max_samples and args.max_samples > 0:

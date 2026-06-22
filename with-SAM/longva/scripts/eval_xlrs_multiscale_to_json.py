@@ -245,13 +245,13 @@ def _extract_single_choice_letter(text: Optional[str]) -> Optional[str]:
         return None
     text = _clean_generated_text(text)
     for line in (l.strip() for l in text.splitlines() if l.strip()):
-        m = re.match(r"^[^A-Da-d]*([ABCD])(?:\\b|[^A-Za-z])", line)
+        m = re.match(r"^[^A-Fa-f]*([ABCDEF])(?:\\b|[^A-Za-z])", line)
         if m:
             return m.group(1).upper()
         break
     seen = []
     for ch in text.upper():
-        if ch in {"A", "B", "C", "D"} and ch not in seen:
+        if ch in {"A", "B", "C", "D", "E", "F"} and ch not in seen:
             seen.append(ch)
     if len(seen) == 1:
         return seen[0]
@@ -260,7 +260,7 @@ def _extract_single_choice_letter(text: Optional[str]) -> Optional[str]:
 
 def _extract_choice_set(text: Optional[str]) -> List[str]:
     """
-    Extract sorted, de-duplicated choices (A-D) from text.
+    Extract sorted, de-duplicated choices (A-F) from text.
     Used to handle multi-select where all options must be correct.
     """
     if not isinstance(text, str):
@@ -268,7 +268,7 @@ def _extract_choice_set(text: Optional[str]) -> List[str]:
     text = _clean_generated_text(text)
     letters: List[str] = []
     for ch in text.upper():
-        if ch in {"A", "B", "C", "D"} and ch not in letters:
+        if ch in {"A", "B", "C", "D", "E", "F"} and ch not in letters:
             letters.append(ch)
     return sorted(letters)
 

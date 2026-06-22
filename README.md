@@ -1,53 +1,61 @@
-# UHR-BAT: Budget-Aware Token Compression Vision-Language Model for Ultra-High-Resolution Remote Sensing
+<h1 align="center">UHR-BAT</h1>
 
-[![Paper](https://img.shields.io/badge/arXiv-2604.13565-b31b1b.svg)](https://arxiv.org/abs/2604.13565)
-[![Conference](https://img.shields.io/badge/ICML-2026-blue.svg)]()
-[![Model](https://img.shields.io/badge/Model-RL--MIND%2FUHR--BAT-yellow.svg)](https://huggingface.co/RL-MIND/UHR-BAT)
-[![SFT Data](https://img.shields.io/badge/SFT%20Data-RL--MIND%2FUHR--BAT--SFT--10K-green.svg)](https://huggingface.co/datasets/RL-MIND/UHR-BAT-SFT-10K)
-[![Eval Data](https://img.shields.io/badge/Eval%20Data-RL--MIND%2FXHRBench-orange.svg)](https://huggingface.co/datasets/RL-MIND/XHRBench)
+<h3 align="center">
+Budget-Aware Token Compression Vision-Language Model for Ultra-High-Resolution Remote Sensing
+</h3>
 
-[Project Page](https://yunkaidang.github.io/bibliography/dang2026uhr-bat/) | [Paper](https://arxiv.org/abs/2604.13565) | [Model](https://huggingface.co/RL-MIND/UHR-BAT) | [SFT Data](https://huggingface.co/datasets/RL-MIND/UHR-BAT-SFT-10K) | [Eval Data](https://huggingface.co/datasets/RL-MIND/XHRBench)
+<p align="center">
+  <a href="https://arxiv.org/abs/2604.13565"><img src="https://img.shields.io/badge/arXiv-2604.13565-b31b1b.svg" alt="arXiv"></a>
+  <a href="https://yunkaidang.github.io/bibliography/dang2026uhr-bat/"><img src="https://img.shields.io/badge/Project-Page-blue" alt="Project Page"></a>
+  <a href="https://huggingface.co/RL-MIND/UHR-BAT"><img src="https://img.shields.io/badge/Model-RL--MIND%2FUHR--BAT-yellow" alt="Model"></a>
+  <a href="https://huggingface.co/datasets/RL-MIND/UHR-BAT-SFT-10K"><img src="https://img.shields.io/badge/SFT%20Data-RL--MIND%2FUHR--BAT--SFT--10K-green" alt="SFT Data"></a>
+  <a href="https://huggingface.co/datasets/RL-MIND/XHRBench"><img src="https://img.shields.io/badge/Eval%20Data-RL--MIND%2FXHRBench-orange" alt="Eval Data"></a>
+  <a href="./LICENSE"><img src="https://img.shields.io/badge/License-Apache--2.0-lightgrey" alt="License"></a>
+</p>
 
-UHR-BAT is a budget-aware vision-language framework for ultra-high-resolution remote sensing. It targets kilometer-scale scenes where query-critical evidence may occupy only a few pixels. Instead of relying on direct downsampling, dense tiling, or generic global pruning, UHR-BAT performs query-guided multi-scale token selection and region-faithful compression so large remote-sensing images can be processed under a strict context budget.
+<p align="center">
+  <a href="https://yunkaidang.github.io/bibliography/dang2026uhr-bat/">Project Page</a> |
+  <a href="https://arxiv.org/abs/2604.13565">Paper</a> |
+  <a href="https://huggingface.co/RL-MIND/UHR-BAT">Model</a> |
+  <a href="https://huggingface.co/datasets/RL-MIND/UHR-BAT-SFT-10K">SFT Data</a> |
+  <a href="https://huggingface.co/datasets/RL-MIND/XHRBench">Eval Data</a>
+</p>
+
+UHR-BAT is a budget-aware vision-language framework for ultra-high-resolution remote-sensing understanding. It targets kilometer-scale scenes where query-critical evidence can occupy only a few pixels. Instead of relying on direct downsampling, dense tiling, or generic token pruning, UHR-BAT performs query-guided multi-scale token selection and region-faithful compression under an explicit visual-token budget.
 
 ## News
 
-- **2026**: UHR-BAT has been accepted by **ICML 2026**.
-- **2026**: The source code, pretrained model, supervised fine-tuning data, and XHRBench evaluation data are released.
+- **2026/06**: Source code, pretrained model, SFT data, and XHRBench evaluation data are released.
+- **2026**: UHR-BAT is accepted by **ICML 2026**.
 
-## Introduction
+## Overview
 
-Ultra-high-resolution remote-sensing images contain rich visual details but introduce severe computational challenges for vision-language models. Directly resizing such images can erase small but decisive objects, while dense tiling and global token pruning often produce unpredictable compute or discard query-relevant regions.
+UHR-BAT addresses this with a budget-aware compression pipeline:
 
-UHR-BAT introduces a budget-aware token compression strategy for efficient and effective understanding of ultra-high-resolution remote-sensing imagery. It allocates visual token budgets according to the current instruction, preserves informative regional evidence, and merges redundant background tokens into compact representatives.
+- **Query-guided selection** allocates more visual tokens to regions related to the current instruction.
+- **Multi-scale visual input** preserves both global scene structure and local evidence.
+- **Region-faithful preserve-and-merge** keeps informative regional tokens while merging redundant background tokens.
+- **Fixed token budgets** make memory, latency, and context usage easier to control.
 
-## Highlights
+![UHR-BAT method overview](method.png)
 
-- Designed for ultra-high-resolution remote-sensing image understanding.
-- Query-guided token compression allocates token budgets according to the current instruction.
-- Multi-scale input preserves both global scene context and fine-grained local evidence.
-- Region-faithful preserve-and-merge keeps task-relevant regional tokens while reducing redundancy.
-- Efficient UHR understanding under memory, latency, and context-budget constraints.
+## Repository Structure
 
-## Main Results
+```text
+UHR-BAT/
+├── uhr_bat/                 # Single-image inference and lmms-eval adapter
+├── scripts/                 # Utility wrappers and released-data conversion
+├── with_k-means/longva/      # K-Means token grouping branch
+├── with-SAM/longva/          # SAM-guided region-mask branch
+├── requirements.txt
+└── pyproject.toml
+```
 
-The project page and model card report strong ultra-high-resolution remote-sensing results under strict token budgets:
-
-- XLRS-Bench: 44.0 weighted average accuracy.
-- MMERealworld-RS: 33.33 mean score.
-- RSHR-Bench: 29.2 on Perception and 45.0 on Reasoning.
-
-## Repository Contents
-
-- `uhr_bat/`: single-image inference utilities and the `lmms-eval` adapter.
-- `with-SAM/`: SAM-guided region partition and multiscale token-mask training/evaluation.
-- `with_k-means/`: K-Means-based region partition and attention grouping for training/evaluation.
-
-Both branches are based on LongVA. They expose the same Python package name, `longva`, so install only the branch you are actively running in one environment.
+Both LongVA branches expose the Python package name `longva`. Install only the branch you are actively using in one environment.
 
 ## Installation
 
-The commands below assume CUDA 12.1 and a conda environment named `geo`.
+Use Python 3.11 with CUDA 12.1. Install the base package and then choose one LongVA branch.
 
 ```bash
 conda create -n geo python=3.11 -y
@@ -61,42 +69,28 @@ git clone https://github.com/Yunkaidang/UHR-BAT.git
 cd UHR-BAT
 pip install -r requirements.txt --no-deps
 pip install -e . --no-deps
+
+# Choose one branch:
+pip install -e with_k-means/longva --no-deps   # mask-free K-Means inference/evaluation
+# pip install -e with-SAM/longva --no-deps     # SAM-mask training/evaluation
 ```
 
-Install one LongVA branch:
-
-```bash
-cd with_k-means/longva
-pip install -e . --no-deps
-cd ../..
-```
-
-or:
-
-```bash
-cd with-SAM/longva
-pip install -e . --no-deps
-cd ../..
-```
-
-For offline machines, download the vision tower once and pass its path with `--vision-tower`:
+For offline servers, download the CLIP vision tower once and pass the local path with `--vision-tower`:
 
 ```bash
 huggingface-cli download openai/clip-vit-large-patch14-336 \
   --local-dir checkpoints/clip-vit-large-patch14-336
 ```
 
-## Models And Datasets
+## Model And Data
 
-The released model, SFT data, and evaluation benchmark are hosted under `RL-MIND` on Hugging Face.
-
-| Asset | Hugging Face repository | Purpose |
+| Asset | Hugging Face repository | Use |
 | --- | --- | --- |
-| UHR-BAT model | [`RL-MIND/UHR-BAT`](https://huggingface.co/RL-MIND/UHR-BAT) | Full pretrained UHR-BAT checkpoint with remote-code wrappers. |
-| SFT data | [`RL-MIND/UHR-BAT-SFT-10K`](https://huggingface.co/datasets/RL-MIND/UHR-BAT-SFT-10K) | Supervised fine-tuning data for UHR-BAT. |
-| Evaluation data | [`RL-MIND/XHRBench`](https://huggingface.co/datasets/RL-MIND/XHRBench) | Ultra-high-resolution remote-sensing evaluation benchmark. |
+| UHR-BAT checkpoint | [`RL-MIND/UHR-BAT`](https://huggingface.co/RL-MIND/UHR-BAT) | Released pretrained model with remote-code wrappers. |
+| SFT data | [`RL-MIND/UHR-BAT-SFT-10K`](https://huggingface.co/datasets/RL-MIND/UHR-BAT-SFT-10K) | Supervised fine-tuning data. |
+| Evaluation data | [`RL-MIND/XHRBench`](https://huggingface.co/datasets/RL-MIND/XHRBench) | Ultra-high-resolution remote-sensing benchmark. |
 
-Download the released assets:
+Download the public assets:
 
 ```bash
 mkdir -p checkpoints data
@@ -113,7 +107,7 @@ huggingface-cli download RL-MIND/XHRBench \
   --local-dir data/XHRBench
 ```
 
-Prepare the released SFT annotations for training:
+Prepare the SFT annotations for LongVA-style training:
 
 ```bash
 python scripts/prepare_uhrbat_sft.py \
@@ -121,52 +115,55 @@ python scripts/prepare_uhrbat_sft.py \
   --output data/UHR-BAT-SFT-10K/ft3_selected_10k.json
 ```
 
-Notes on local layouts:
+Layout notes:
 
-- `RL-MIND/UHR-BAT-SFT-10K` is packaged as `train/metadata.parquet` and `train/images/`. Convert `metadata.parquet` to LongVA-style JSON before training, then use `IMAGE_FOLDER=data/UHR-BAT-SFT-10K/train/images`.
-- The released training scripts expect a LongVA-style JSON file plus an image folder through `JSON_PATH` and `IMAGE_FOLDER`.
-- `RL-MIND/XHRBench` includes `dataset.json` and an `images/` folder. Because `dataset.json` stores paths such as `images/xxx.png`, use `--image_root data/XHRBench`.
-- Model weights, datasets, checkpoints, and output folders are ignored by `.gitignore` and should not be committed to this repository.
+- `RL-MIND/UHR-BAT-SFT-10K` is packaged as `train/metadata.parquet` plus `train/images/`.
+- The released training scripts expect `JSON_PATH` to point to a LongVA/LLaVA-style JSON file and `IMAGE_FOLDER` to point to the image directory.
+- `RL-MIND/XHRBench` includes `dataset.json` and `images/`; because `dataset.json` stores paths such as `images/xxx.png`, use `--image_root data/XHRBench`.
+- Checkpoints, datasets, generated masks, and output folders are ignored by `.gitignore` and should not be committed.
 
-## Quick Smoke Test
+## Quick Start
 
-Run a single-image generation test with the released Hugging Face checkpoint:
+Run one image through the released checkpoint:
 
 ```bash
 python -m uhr_bat.infer \
   --image /path/to/remote_sensing_image.png \
   --question "Describe this remote-sensing image briefly." \
-  --ckpt RL-MIND/UHR-BAT \
+  --ckpt checkpoints/UHR-BAT \
   --branch kmeans \
-  --device cuda:0
+  --device cuda:0 \
+  --attn-implementation flash_attention_2
 ```
 
-Equivalent console script:
+The console entry point is equivalent:
 
 ```bash
 uhr-bat-infer \
   --image /path/to/remote_sensing_image.png \
   --question "Describe this remote-sensing image briefly." \
-  --ckpt RL-MIND/UHR-BAT \
+  --ckpt checkpoints/UHR-BAT \
   --branch kmeans \
   --device cuda:0
 ```
 
-For a relative image path under XHRBench, pass the image root explicitly:
+For a relative image path inside XHRBench, pass the dataset root:
 
 ```bash
 uhr-bat-infer \
-  --image <relative_image_path_from_dataset_json> \
+  --image images/example.png \
   --image-root data/XHRBench \
-  --question "Describe this remote-sensing image briefly." \
-  --ckpt RL-MIND/UHR-BAT \
+  --question "Answer the question based on the image." \
+  --ckpt checkpoints/UHR-BAT \
   --branch kmeans \
   --device cuda:0
 ```
 
+Use `--attn-implementation none` if your environment does not have FlashAttention installed.
+
 ## Training
 
-The main released SFT recipe uses the SAM/mask branch. The example below assumes you have prepared a LongVA-style JSON annotation file, an image folder, and multiscale token masks:
+The main SFT recipe uses the SAM/mask branch. It expects a LongVA-style JSON file, an image folder, and precomputed multiscale token masks.
 
 ```bash
 cd with-SAM/longva
@@ -184,21 +181,27 @@ bash scripts/ft3_selected.sh
 
 Important knobs:
 
-- `TOPK_672`, `TOPK_1344`, `TOPK_2688`, `TOPK_4032`: token budgets for each scale.
+- `TOPK_672`, `TOPK_1344`, `TOPK_2688`, `TOPK_4032`: visual-token budgets for each scale.
 - `GPU_IDS`: comma-separated visible GPUs for `torchrun`.
-- `CKPT_PATH`: base checkpoint or previous UHR-BAT checkpoint.
+- `CKPT_PATH`: base LongVA checkpoint or a previous UHR-BAT checkpoint.
 - `MASK_ROOT`: multiscale token masks produced by `build_multiscale_token_masks.py`.
 
 K-Means training is available at `with_k-means/longva/scripts/ft3_selected.sh` and does not require `MASK_ROOT`.
 
-## Evaluation Scripts
+## Evaluation
 
-The K-Means branch can evaluate XHRBench without precomputed masks:
+Set a local CLIP vision tower path on offline or SSL-restricted machines:
+
+```bash
+export UHR_BAT_VISION_TOWER=/path/to/clip-vit-large-patch14-336
+```
+
+K-Means evaluation can run without precomputed masks. The same script supports XHRBench, XLRS-Bench-style JSON files, HR-Bench, and Tree-Bench when they are formatted as LongVA/LLaVA conversation JSON.
 
 ```bash
 cd with_k-means/longva
 python -u scripts/eval_xlrs_multiscale_to_json.py \
-  --ckpt RL-MIND/UHR-BAT \
+  --ckpt ../../checkpoints/UHR-BAT \
   --data_json ../../data/XHRBench/dataset.json \
   --image_root ../../data/XHRBench \
   --output_json ../../outputs/xhrbench_kmeans_results.jsonl \
@@ -208,25 +211,49 @@ python -u scripts/eval_xlrs_multiscale_to_json.py \
   --devices cuda:0,cuda:1
 ```
 
-SAM-based evaluation requires precomputed multiscale token masks for the evaluation images:
+Paper-style XLRS-Bench evaluation:
 
 ```bash
-cd with-SAM/longva
 python -u scripts/eval_xlrs_multiscale_to_json.py \
-  --ckpt RL-MIND/UHR-BAT \
-  --data_json ../../data/XHRBench/dataset.json \
-  --image_root ../../data/XHRBench \
-  --mask_root /path/to/xhrbench_multiscale_tile_masks \
-  --output_json ../../outputs/xhrbench_sam_results.jsonl \
-  --multiscale_topk 180,1320,1600,8000 \
+  --ckpt ../../checkpoints/UHR-BAT \
+  --data_json /path/to/XLRS/xlrs_lite_relative.json \
+  --image_root /path/to/XLRS/images \
+  --output_json ../../outputs/xlrs_kmeans_results.jsonl \
+  --multiscale_topk 80,320,600,2000 \
+  --kmeans_num_clusters 600 \
+  --kmeans_max_iters 100 \
   --devices cuda:0,cuda:1
 ```
 
-The script name keeps the original `xlrs` convention, but the loader accepts XLRS/MME-style JSON lists and can be pointed at XHRBench's `dataset.json`.
+Paper-style RSHR-Bench evaluation is run on the HR-Bench and Tree-Bench splits:
+
+```bash
+python -u scripts/eval_xlrs_multiscale_to_json.py \
+  --ckpt ../../checkpoints/UHR-BAT \
+  --data_json /path/to/general-8K/HR-Bench/hr_bench_8k_metadata_relative.json \
+  --image_root /path/to/dataset_root \
+  --output_json ../../outputs/rshr_hrbench_kmeans_results.jsonl \
+  --multiscale_topk 80,320,600,2000 \
+  --kmeans_num_clusters 600 \
+  --kmeans_max_iters 100 \
+  --device cuda:0
+
+python -u scripts/eval_xlrs_multiscale_to_json.py \
+  --ckpt ../../checkpoints/UHR-BAT \
+  --data_json /path/to/general-8K/Tree-Bench/TreeBench_metadata_relative.json \
+  --image_root /path/to/dataset_root \
+  --output_json ../../outputs/rshr_treebench_kmeans_results.jsonl \
+  --multiscale_topk 80,320,600,2000 \
+  --kmeans_num_clusters 600 \
+  --kmeans_max_iters 100 \
+  --device cuda:1
+```
+
+Use `--max_samples N` for a quick smoke test before launching the full benchmark. The script name keeps the original `xlrs` convention, but the loader accepts XLRS/MME-style JSON lists and XHRBench-style `dataset.json`.
 
 ## lmms-eval
 
-This repository ships an external `lmms-eval` plugin. After installing both repositories, `lmms-eval` will discover the `uhr_bat` model through the `lmms_eval.models` entry point.
+UHR-BAT also provides an external `lmms-eval` adapter through the `lmms_eval.models` entry point.
 
 ```bash
 git clone https://github.com/EvolvingLMMs-Lab/lmms-eval.git
@@ -237,26 +264,22 @@ cd ../UHR-BAT
 pip install -e . --no-deps
 
 lmms-eval --model uhr_bat \
-  --model_args pretrained=RL-MIND/UHR-BAT,device_map=auto,multiscale_topk=80:320:600:2000,multiscale_target_sizes=672:1344:2688:4032 \
+  --model_args pretrained=checkpoints/UHR-BAT,device_map=auto,multiscale_topk=80:320:600:2000,multiscale_target_sizes=672:1344:2688:4032 \
   --tasks <task_name> \
   --batch_size 1 \
   --limit 10
 ```
 
-Notes:
 
-- Use `--model uhr_bat`, `--model uhr-bat`, or `--model uhrbat`.
-- Use `:` between multiscale values inside `--model_args`; commas are reserved by `lmms-eval` for argument separation.
-- The adapter uses the Hugging Face remote-code checkpoint and supports image `generate_until` tasks plus loglikelihood-style multiple-choice tasks.
-- If you maintain a fork of `lmms-eval` and prefer vendoring the adapter, copy `uhr_bat/lmms_eval_model.py` to `lmms_eval/models/simple/uhr_bat.py` and add `"uhr_bat": "UHRBAT"` to `AVAILABLE_SIMPLE_MODELS`.
+
 
 ## Citation
 
-If you find this work useful, please consider citing our paper:
+If you find this work useful, please cite our paper:
 
 ```bibtex
 @inproceedings{dang2026uhrbat,
-  title={UHR-BAT: Budget-Aware Token Compression Vision-Language model for Ultra-High-Resolution Remote Sensing},
+  title={UHR-BAT: Budget-Aware Token Compression Vision-Language Model for Ultra-High-Resolution Remote Sensing},
   author={Dang, Yunkai and Dai, Minxin and Yang, Yuekun and Li, Zhangnan and Li, Wenbin and Miao, Feng and Gao, Yang},
   booktitle={International Conference on Machine Learning (ICML)},
   year={2026}
@@ -265,6 +288,9 @@ If you find this work useful, please consider citing our paper:
 
 ## Acknowledgement
 
-- [LongVA](https://github.com/EvolvingLMMs-Lab/LongVA) for the base multimodal framework.
-- [Segment Anything](https://github.com/facebookresearch/segment-anything) for SAM-based region annotations.
-- [XLRS-Bench](https://github.com/AI9Stars/XLRS-Bench) and [XHRBench](https://huggingface.co/datasets/RL-MIND/XHRBench) for ultra-high-resolution remote-sensing evaluation.
+We thank the authors and maintainers of the following projects:
+
+- [LongVA](https://github.com/EvolvingLMMs-Lab/LongVA)
+- [Segment Anything](https://github.com/facebookresearch/segment-anything)
+- [XLRS-Bench](https://github.com/AI9Stars/XLRS-Bench)
+- [XHRBench](https://huggingface.co/datasets/RL-MIND/XHRBench)
