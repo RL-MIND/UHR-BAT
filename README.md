@@ -1,7 +1,5 @@
-<h1 align="center">UHR-BAT</h1>
-
 <h3 align="center">
-Budget-Aware Token Compression Vision-Language Model for Ultra-High-Resolution Remote Sensing
+UHR-BAT: Budget-Aware Token Compression Vision-Language Model for Ultra-High-Resolution Remote Sensing
 </h3>
 
 <p align="center">
@@ -89,38 +87,6 @@ huggingface-cli download openai/clip-vit-large-patch14-336 \
 | UHR-BAT checkpoint | [`RL-MIND/UHR-BAT`](https://huggingface.co/RL-MIND/UHR-BAT) | Released pretrained model with remote-code wrappers. |
 | SFT data | [`RL-MIND/UHR-BAT-SFT-10K`](https://huggingface.co/datasets/RL-MIND/UHR-BAT-SFT-10K) | Supervised fine-tuning data. |
 | Evaluation data | [`RL-MIND/XHRBench`](https://huggingface.co/datasets/RL-MIND/XHRBench) | Ultra-high-resolution remote-sensing benchmark. |
-
-Download the public assets:
-
-```bash
-mkdir -p checkpoints data
-
-huggingface-cli download RL-MIND/UHR-BAT \
-  --local-dir checkpoints/UHR-BAT
-
-huggingface-cli download RL-MIND/UHR-BAT-SFT-10K \
-  --repo-type dataset \
-  --local-dir data/UHR-BAT-SFT-10K
-
-huggingface-cli download RL-MIND/XHRBench \
-  --repo-type dataset \
-  --local-dir data/XHRBench
-```
-
-Prepare the SFT annotations for LongVA-style training:
-
-```bash
-python scripts/prepare_uhrbat_sft.py \
-  --metadata data/UHR-BAT-SFT-10K/train/metadata.parquet \
-  --output data/UHR-BAT-SFT-10K/ft3_selected_10k.json
-```
-
-Layout notes:
-
-- `RL-MIND/UHR-BAT-SFT-10K` is packaged as `train/metadata.parquet` plus `train/images/`.
-- The released training scripts expect `JSON_PATH` to point to a LongVA/LLaVA-style JSON file and `IMAGE_FOLDER` to point to the image directory.
-- `RL-MIND/XHRBench` includes `dataset.json` and `images/`; because `dataset.json` stores paths such as `images/xxx.png`, use `--image_root data/XHRBench`.
-- Checkpoints, datasets, generated masks, and output folders are ignored by `.gitignore` and should not be committed.
 
 ## Quick Start
 
