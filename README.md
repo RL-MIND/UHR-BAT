@@ -34,7 +34,7 @@ UHR-BAT addresses this with a budget-aware compression pipeline:
 
 - **Query-guided selection** allocates more visual tokens to regions related to the current instruction.
 - **Multi-scale visual input** preserves both global scene structure and local evidence.
-- **Region-faithful preserve-and-merge** keeps informative regional tokens while merging redundant background tokens.
+- **Region-faithful preserve-and-merge** keeps regional tokens while merging redundant background tokens.
 - **Fixed token budgets** make memory, latency, and context usage easier to control.
 
 ![UHR-BAT method overview](method.png)
